@@ -7,7 +7,9 @@ const ASSETS = [
   './main.js',
   './manifest.webmanifest',
   './vendor/three.min.js',
-  './vendor/tween.umd.js'
+  './vendor/tween.umd.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
