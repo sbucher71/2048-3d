@@ -1,13 +1,13 @@
 // Simple service worker for offline caching
-const CACHE = '2048-3d-v1';
+const CACHE = '2048-3d-v2';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './main.js',
   './manifest.webmanifest',
-  'https://unpkg.com/three@0.160.0/build/three.min.js',
-  'https://cdn.jsdelivr.net/npm/@tweenjs/tween.js@18.6.4/dist/tween.umd.js'
+  './vendor/three.min.js',
+  './vendor/tween.umd.js'
 ];
 
 self.addEventListener('install', (event) => {
