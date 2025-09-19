@@ -1,1 +1,6 @@
+node_modules/
+www/
+ios/App/App/build/
+build/
+.DS_Store
 .vercel

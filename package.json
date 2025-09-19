@@ -1,0 +1,30 @@
+{
+  "name": "testapp",
+  "version": "1.0.0",
+  "description": "A small, self-contained 3D take on 2048 using Three.js with smooth tweens and a glassy HUD.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cap:sync": "npx cap sync",
+    "cap:add:android": "npx cap add android",
+    "cap:open:android": "npx cap open android"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sbucher71/2048-3d.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sbucher71/2048-3d/issues"
+  },
+  "homepage": "https://github.com/sbucher71/2048-3d#readme",
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3"
+  }
+}

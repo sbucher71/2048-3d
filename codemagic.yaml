@@ -1,0 +1,171 @@
+workflows:
+  ios-capacitor:
+    name: iOS Capacitor Build
+    environment:
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install Node deps
+        script: |
+          npm ci || npm i
+      - name: Build web assets
+        script: |
+          # Copy static assets to www (no bundler needed)
+          mkdir -p www/icons www/vendor
+          cp -f index.html styles.css main.js manifest.webmanifest sw.js www/
+          cp -f icons/*.png www/icons/
+          cp -f vendor/*.js www/vendor/
+      - name: Capacitor sync
+        script: |
+          npx cap sync ios
+      - name: Xcode build
+        script: |
+          xcodebuild -project "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/App.xcarchive \
+            clean archive \
+            CODE_SIGNING_ALLOWED=NO
+    artifacts:
+      - build/App.xcarchive
+      - ios/App/App/build/Release-iphoneos/*.app
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+
+  ios-appstore:
+    name: iOS Signed IPA (App Store)
+    environment:
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+        # Set these in Codemagic UI as secure env vars
+        BUNDLE_ID: "com.obrc.a2048"
+        TEAM_ID: ""
+        EXPORT_PATH: "build/export-appstore"
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install Node deps
+        script: |
+          npm ci || npm i
+      - name: Build web assets
+        script: |
+          mkdir -p www/icons www/vendor
+          cp -f index.html styles.css main.js manifest.webmanifest sw.js www/
+          cp -f icons/*.png www/icons/
+          cp -f vendor/*.js www/vendor/
+      - name: Capacitor sync iOS
+        script: |
+          npx cap sync ios
+      - name: Initialize keychain
+        script: |
+          keychain initialize
+      - name: Fetch signing files (App Store)
+        script: |
+          # Requires APP_STORE_CONNECT_* env vars in Codemagic (Issuer ID, Key ID, Private Key base64)
+          app-store-connect fetch-signing-files \
+            --type IOS_APP_STORE \
+            --bundle-id "$BUNDLE_ID" \
+            --create
+      - name: Use signing files
+        script: |
+          keychain add-certificates
+      - name: Xcode archive (signed)
+        script: |
+          # Ensure bundle identifier is set in the native project
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" ios/App/App/Info.plist || true
+          EXTRA_SETTINGS=""
+          if [ -n "$BUNDLE_ID" ]; then EXTRA_SETTINGS="$EXTRA_SETTINGS PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID"; fi
+          if [ -n "$TEAM_ID" ]; then EXTRA_SETTINGS="$EXTRA_SETTINGS DEVELOPMENT_TEAM=$TEAM_ID"; fi
+          xcodebuild -project "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/App.xcarchive \
+            clean archive \
+            $EXTRA_SETTINGS
+      - name: Export IPA (App Store)
+        script: |
+          mkdir -p "$EXPORT_PATH"
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist ios/exportOptions-appstore.plist
+    artifacts:
+      - build/export-appstore/*.ipa
+      - build/App.xcarchive
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+
+  ios-adhoc:
+    name: iOS Signed IPA (Ad Hoc)
+    environment:
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+        BUNDLE_ID: "com.obrc.a2048"
+        TEAM_ID: ""
+        EXPORT_PATH: "build/export-adhoc"
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install Node deps
+        script: |
+          npm ci || npm i
+      - name: Build web assets
+        script: |
+          mkdir -p www/icons www/vendor
+          cp -f index.html styles.css main.js manifest.webmanifest sw.js www/
+          cp -f icons/*.png www/icons/
+          cp -f vendor/*.js www/vendor/
+      - name: Capacitor sync iOS
+        script: |
+          npx cap sync ios
+      - name: Initialize keychain
+        script: |
+          keychain initialize
+      - name: Fetch signing files (Ad Hoc)
+        script: |
+          app-store-connect fetch-signing-files \
+            --type IOS_APP_ADHOC \
+            --bundle-id "$BUNDLE_ID" \
+            --create
+      - name: Use signing files
+        script: |
+          keychain add-certificates
+      - name: Xcode archive (signed)
+        script: |
+          # Ensure bundle identifier is set in the native project
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" ios/App/App/Info.plist || true
+          EXTRA_SETTINGS=""
+          if [ -n "$BUNDLE_ID" ]; then EXTRA_SETTINGS="$EXTRA_SETTINGS PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID"; fi
+          if [ -n "$TEAM_ID" ]; then EXTRA_SETTINGS="$EXTRA_SETTINGS DEVELOPMENT_TEAM=$TEAM_ID"; fi
+          xcodebuild -project "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/App.xcarchive \
+            clean archive \
+            $EXTRA_SETTINGS
+      - name: Export IPA (Ad Hoc)
+        script: |
+          mkdir -p "$EXPORT_PATH"
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist ios/exportOptions-adhoc.plist
+    artifacts:
+      - build/export-adhoc/*.ipa
+      - build/App.xcarchive
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
