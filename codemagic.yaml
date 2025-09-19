@@ -45,7 +45,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
   BUNDLE_ID: "com.obrc.a2048"
-        EXPORT_PATH: "build/export-appstore"
+  EXPORT_PATH: "build/export-appstore"
       xcode: latest
       cocoapods: default
     scripts:
@@ -109,7 +109,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
   BUNDLE_ID: "com.obrc.a2048"
-        EXPORT_PATH: "build/export-adhoc"
+  EXPORT_PATH: "build/export-adhoc"
       xcode: latest
       cocoapods: default
     scripts:
